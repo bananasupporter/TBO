@@ -1,0 +1,208 @@
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<style>
+table, tr, td {
+	border: 1px solid black;
+}
+</style>
+</head>
+
+<body>
+	<table>
+		<tbody>
+			<tr class="date">
+		
+			</tr>
+			<tr class="value">
+		
+			</tr>
+		</tbody>
+	</table>
+	<div class="currentValue">
+	
+	</div>
+</body>
+
+<script>
+
+
+	// hier fängt's an :)
+	
+	$(document).ready(function() 
+	{
+		constructContent();
+		
+		// aktualisiert den aktuellen Wert alle 5 Sekunden
+		setInterval(function() 
+				{
+					updateContent();
+				}
+			, 5000);
+	});
+	
+	
+	
+	
+	/*
+	*
+	*  erstellt den Inhalt der Seite
+	*
+	*/
+	function constructContent() 
+	{
+		$.getJSON(createResponseTwoLastWeeks(), function(data) 
+		{
+			tableConstructor(data);
+		});
+		
+		$.getJSON(createResponseCurrentPrice(), function(data) 
+		{
+			currentValueConstructor(data);
+		});
+	}
+	
+	
+	
+	
+	/*
+	*
+	*  aktualisiert den aktuellen Wert auf der Seite
+	*
+	*/
+	function updateContent() 
+	{
+		$.ajax(
+		{
+			url: createResponseCurrentPrice(),
+			success: function(data) 
+				{
+					currentValueConstructor(JSON.parse(data));
+				}
+		});
+	}
+	
+	
+	
+	
+	/*
+	*
+	*  generiert den API-URL für die letzten 2 Wochen
+	*
+	*/
+	function createResponseTwoLastWeeks()
+	{	
+		var response = "https://api.coindesk.com/v1/bpi/historical/close.json?start=" + setOldDate() + "&end=" + setDateForToday();
+		
+		return response;
+	}
+	
+	
+	
+	
+	/*
+	*
+	*  generiert den API-URL für den aktuellen Wert
+	*
+	*/
+	function createResponseCurrentPrice()
+	{	
+		var response = "https://api.coindesk.com/v1/bpi/currentprice.json";
+		
+		return response;
+	}
+	
+	
+	
+	
+	/*
+	*
+	*  generiert die Tabelle mit Werten
+	*
+	*/
+	function tableConstructor(dateObject) 
+	{
+		$.each(dateObject.bpi, function(date, value) 
+		{
+			$("<td>" + date + "</td>").appendTo($(".date"));
+			$("<td>" + value + " USD</td>").appendTo($(".value"));
+		});
+	}
+	
+	
+	
+	
+	/*
+	*
+	*  generiert ein Textfeld mit dem aktuellen Wert
+	*
+	*/
+	function currentValueConstructor(dateObject) 
+	{
+		$(".removable").remove();
+		$("<p class=\"removable\"> Current Price: " + dateObject.bpi.USD.rate_float + " USD</p>").appendTo($(".currentValue"));
+	}
+	
+	
+	
+	
+	/*
+	*
+	*  generiert heutiges Datum
+	*
+	*/
+	function setDateForToday()
+	{
+		var date = formatDate(new Date());
+		
+		return date;
+	}
+	
+	
+	
+	
+	
+	/*
+	*
+	*  generiert das Datum vor 2 Wochen
+	*
+	*/
+	function setOldDate()
+	{
+		var date = new Date();
+		
+		date.setDate(date.getDate() - 14);
+		date = formatDate(date);
+		
+		return date;
+	}
+	
+	
+	
+	
+	/*
+	*
+	*  formatiert das Datum zum passenden String "yyyy-mm-dd"
+	*
+	*/
+	function formatDate(date) 
+	{
+		var dd = date.getDate();
+		var mm = date.getMonth() + 1; 
+		var yyyy = date.getFullYear();
+		
+		if (dd < 10) 
+		{
+			dd = '0' + dd;
+		} 
+		
+		if (mm < 10) 
+		{
+			mm = '0' + mm;
+		} 
+		
+		var date = yyyy + "-" + mm + "-" + dd;
+		return date;
+	}
+</script>
+</html>
